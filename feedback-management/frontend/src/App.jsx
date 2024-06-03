@@ -23,7 +23,7 @@ const App = () => {
       setLoading(true);
       const response = await axios.post('/api/auth/login', { username, password });
       console.log('Login successful:', response.data);
-      // Add logic to handle successful login (e.g., redirect to dashboard)
+      //    Add logic to handle successful login (e.g., redirect to dashboard)
     } catch (error) {
       console.error('Error logging in:', error.response.data.message);
       setError(error.response.data.message);
@@ -92,7 +92,7 @@ const App = () => {
               <CardContent>
                 <Typography variant="h5" gutterBottom>Register</Typography>
                 <TextField
-                  label="Username"
+                  label="Username/email"
                   variant="outlined"
                   fullWidth
                   value={username}
