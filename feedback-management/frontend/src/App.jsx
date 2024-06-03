@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -9,39 +9,38 @@ import {
   Grid,
   Card,
   CardContent,
-  CircularProgress,
 } from '@material-ui/core';
 import axios from 'axios';
 
 const App = () => {
-  const [feedback, setFeedback] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [allFeedback, setAllFeedback] = useState([]);
+  const [error, setError] = useState('');
 
-  useEffect(() => {
-    fetchAllFeedback();
-  }, []);
-
-  const fetchAllFeedback = async () => {
+  const handleLogin = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/feedback');
-      setAllFeedback(response.data);
+      const response = await axios.post('/api/auth/login', { username, password });
+      console.log('Login successful:', response.data);
+      // Add logic to handle successful login (e.g., redirect to dashboard)
     } catch (error) {
-      console.error('Error fetching feedback:', error);
+      console.error('Error logging in:', error.response.data.message);
+      setError(error.response.data.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSubmitFeedback = async () => {
+  const handleRegister = async () => {
     try {
       setLoading(true);
-      await axios.post('/api/feedback', { message: feedback });
-      setFeedback('');
-      fetchAllFeedback();
+      const response = await axios.post('/api/auth/register', { username, password });
+      console.log('Registration successful:', response.data);
+      // Add logic to handle successful registration (e.g., show success message)
     } catch (error) {
-      console.error('Error submitting feedback:', error);
+      console.error('Error registering:', error.response.data.message);
+      setError(error.response.data.message);
     } finally {
       setLoading(false);
     }
@@ -56,46 +55,77 @@ const App = () => {
       </AppBar>
       <Container style={{ marginTop: '20px' }}>
         <Grid container spacing={3}>
-          <Grid item xs={12}>
+          <Grid item xs={12} sm={6}>
             <Card>
               <CardContent>
-                <Typography variant="h5" gutterBottom>Submit Feedback</Typography>
+                <Typography variant="h5" gutterBottom>Login</Typography>
                 <TextField
-                  label="Enter your feedback"
+                  label="Username"
                   variant="outlined"
                   fullWidth
-                  multiline
-                  rows={4}
-                  value={feedback}
-                  onChange={e => setFeedback(e.target.value)}
+                  value={username}
+                  onChange={e => setUsername(e.target.value)}
+                />
+                <TextField
+                  label="Password"
+                  variant="outlined"
+                  type="password"
+                  fullWidth
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  style={{ marginTop: '10px' }}
                 />
                 <Button
                   variant="contained"
                   color="primary"
                   style={{ marginTop: '10px' }}
-                  onClick={handleSubmitFeedback}
+                  onClick={handleLogin}
+                  disabled={loading}
                 >
-                  {loading ? <CircularProgress size={24} color="inherit" /> : 'Submit Feedback'}
+                  {loading ? 'Logging in...' : 'Login'}
                 </Button>
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12}>
+          <Grid item xs={12} sm={6}>
             <Card>
               <CardContent>
-                <Typography variant="h5" gutterBottom>All Feedback</Typography>
-                {loading ? (
-                  <CircularProgress />
-                ) : (
-                  <ul>
-                    {allFeedback.map(feedback => (
-                      <li key={feedback.id}>{feedback.message}</li>
-                    ))}
-                  </ul>
-                )}
+                <Typography variant="h5" gutterBottom>Register</Typography>
+                <TextField
+                  label="Username"
+                  variant="outlined"
+                  fullWidth
+                  value={username}
+                  onChange={e => setUsername(e.target.value)}
+                />
+                <TextField
+                  label="Password"
+                  variant="outlined"
+                  type="password"
+                  fullWidth
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  style={{ marginTop: '10px' }}
+                />
+                <Button
+                  variant="contained"
+                  color="primary"
+                  style={{ marginTop: '10px' }}
+                  onClick={handleRegister}
+                  disabled={loading}
+                >
+                  {loading ? 'Registering...' : 'Register'}
+                </Button>
               </CardContent>
             </Card>
           </Grid>
+          {error && (
+            <Grid item xs={12}>
+              <Typography variant="body1" color="error" style={{ marginTop: '10px' }}>
+                {error}
+              </Typography>
+            </Grid>
+          )}
         </Grid>
       </Container>
     </div>
