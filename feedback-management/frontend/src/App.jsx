@@ -1,94 +1,105 @@
 import React, { useState, useEffect } from 'react';
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Container,
+  TextField,
+  Button,
+  Grid,
+  Card,
+  CardContent,
+  CircularProgress,
+} from '@material-ui/core';
 import axios from 'axios';
-import './App.css'; 
 
-function App() {
+const App = () => {
   const [feedback, setFeedback] = useState('');
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [adminUsers, setAdminUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [allFeedback, setAllFeedback] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmitFeedback = async () => {
-    if (!feedback.trim()) {
-      alert('Please enter your feedback.');
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      await axios.post('/api/feedback', { feedback });
-      alert('Feedback submitted successfully!');
-      setFeedback('');
-      setIsLoading(false);
-    } catch (error) {
-      console.error('Error submitting feedback:', error);
-      alert('Failed to submit feedback.');
-      setIsLoading(false);
-    }
-  };
+  useEffect(() => {
+    fetchAllFeedback();
+  }, []);
 
   const fetchAllFeedback = async () => {
     try {
-      const response = await axios.get('/api/feedback/all');
+      setLoading(true);
+      const response = await axios.get('/api/feedback');
       setAllFeedback(response.data);
     } catch (error) {
       console.error('Error fetching feedback:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const fetchAdminUsers = async () => {
+  const handleSubmitFeedback = async () => {
     try {
-      const response = await axios.get('/api/admin/users');
-      setAdminUsers(response.data);
+      setLoading(true);
+      await axios.post('/api/feedback', { message: feedback });
+      setFeedback('');
+      fetchAllFeedback();
     } catch (error) {
-      console.error('Error fetching admin users:', error);
+      console.error('Error submitting feedback:', error);
+    } finally {
+      setLoading(false);
     }
   };
-
-  useEffect(() => {
-    setIsAdmin(true); 
-
-    if (isAdmin) {
-      fetchAdminUsers();
-      fetchAllFeedback();
-    }
-  }, [isAdmin]);
 
   return (
-    <div className="App">
-      <h1>Feedback Management System</h1>
-      <div className="feedback-section">
-        <h2>Submit Feedback</h2>
-        <textarea
-          value={feedback}
-          onChange={(e) => setFeedback(e.target.value)}
-          placeholder="Enter your feedback..."
-        />
-        <button onClick={handleSubmitFeedback} disabled={isLoading}>
-          {isLoading ? 'Submitting...' : 'Submit Feedback'}
-        </button>
-      </div>
-
-      {isAdmin && (
-        <div className="admin-section">
-          <h2>All Feedback</h2>
-          <ul>
-            {allFeedback.map((item) => (
-              <li key={item.id}>{item.feedback}</li>
-            ))}
-          </ul>
-
-          <h2>Admin Users</h2>
-          <ul>
-            {adminUsers.map((user) => (
-              <li key={user.id}>{user.username}</li>
-            ))}
-          </ul>
-        </div>
-      )}
+    <div>
+      <AppBar position="static">
+        <Toolbar>
+          <Typography variant="h6">Customer Feedback Management</Typography>
+        </Toolbar>
+      </AppBar>
+      <Container style={{ marginTop: '20px' }}>
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <Typography variant="h5" gutterBottom>Submit Feedback</Typography>
+                <TextField
+                  label="Enter your feedback"
+                  variant="outlined"
+                  fullWidth
+                  multiline
+                  rows={4}
+                  value={feedback}
+                  onChange={e => setFeedback(e.target.value)}
+                />
+                <Button
+                  variant="contained"
+                  color="primary"
+                  style={{ marginTop: '10px' }}
+                  onClick={handleSubmitFeedback}
+                >
+                  {loading ? <CircularProgress size={24} color="inherit" /> : 'Submit Feedback'}
+                </Button>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <Typography variant="h5" gutterBottom>All Feedback</Typography>
+                {loading ? (
+                  <CircularProgress />
+                ) : (
+                  <ul>
+                    {allFeedback.map(feedback => (
+                      <li key={feedback.id}>{feedback.message}</li>
+                    ))}
+                  </ul>
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      </Container>
     </div>
   );
-}
+};
 
 export default App;

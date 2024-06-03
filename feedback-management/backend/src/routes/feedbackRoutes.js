@@ -1,13 +1,14 @@
-const express = require('express');
-const router = express.Router();
-const feedbackController = require('../controllers/feedbackController');
-
 /**
  * @swagger
  * tags:
  *   name: Feedback
- *   description: Feedback management
+ *   description: API endpoints for managing feedback
  */
+
+const express = require('express');
+const router = express.Router();
+const feedbackController = require('../controllers/feedbackController');
+const authMiddleware = require('../middleware/authMiddleware');
 
 /**
  * @swagger
@@ -15,6 +16,8 @@ const feedbackController = require('../controllers/feedbackController');
  *   post:
  *     summary: Submit feedback
  *     tags: [Feedback]
+ *     security:
+ *       - BearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -22,14 +25,34 @@ const feedbackController = require('../controllers/feedbackController');
  *           schema:
  *             type: object
  *             properties:
- *               feedback:
+ *               message:
  *                 type: string
+ *             required:
+ *               - message
  *     responses:
- *       201:
+ *       '201':
  *         description: Feedback submitted successfully
- *       500:
- *         description: Failed to submit feedback
+ *       '400':
+ *         description: Invalid request body
+ *       '401':
+ *         description: Unauthorized, missing or invalid token
  */
-router.post('/api/feedback', feedbackController.submitFeedback);
+router.post('/feedback', authMiddleware.authenticate, feedbackController.submitFeedback);
+
+/**
+ * @swagger
+ * /api/feedback:
+ *   get:
+ *     summary: Get all feedback
+ *     tags: [Feedback]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       '200':
+ *         description: Successfully retrieved feedback
+ *       '401':
+ *         description: Unauthorized, missing or invalid token
+ */
+router.get('/feedback', authMiddleware.authenticate, feedbackController.getAllFeedback);
 
 module.exports = router;

@@ -1,13 +1,30 @@
 const Feedback = require('../models/Feedback');
 
-exports.submitFeedback = async (req, res) => {
+// Submit feedback
+exports.submitFeedback = async (req, res, next) => {
   try {
-    const { feedback } = req.body;
-    const newFeedback = new Feedback({ feedback });
-    await newFeedback.save();
-    res.status(201).json({ success: true, message: 'Feedback submitted successfully.' });
+    const { message } = req.body;
+
+    // Check if message is provided
+    if (!message) {
+      return res.status(400).json({ success: false, message: 'Please provide feedback message' });
+    }
+
+    // Create new feedback
+    const feedback = await Feedback.create({ user: req.user.id, message });
+
+    res.status(201).json({ success: true, data: feedback });
   } catch (error) {
-    console.error('Error submitting feedback:', error);
-    res.status(500).json({ success: false, message: 'Failed to submit feedback.' });
+    next(error);
+  }
+};
+
+// Get all feedback
+exports.getAllFeedback = async (req, res, next) => {
+  try {
+    const feedbacks = await Feedback.find().populate('user', 'username');
+    res.status(200).json({ success: true, data: feedbacks });
+  } catch (error) {
+    next(error);
   }
 };
